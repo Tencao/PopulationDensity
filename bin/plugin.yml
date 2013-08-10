@@ -4,7 +4,7 @@ author: Ryan Hamshire AKA bigscary
 authors: [X_angelz_X, OffLuffy]
 
 main: me.ryanhamshire.PopulationDensity.PopulationDensity
-softdepend: [Multiverse-Core, My Worlds, Transporter, MystCraft, GriefPrevention]
+softdepend: [Multiverse-Core, My Worlds, Transporter, MystCraft, GriefPrevention, WorldGuard]
 
 commands:
   populationdensity:
