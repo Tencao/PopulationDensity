@@ -1,0 +1,337 @@
+
+    ____                    __      __  _             ____                  _ __       
+   / __ \____  ____  __  __/ /___ _/ /_(_)___  ____  / __ \___  ____  _____(_) /___  __
+  / /_/ / __ \/ __ \/ / / / / __ `/ __/ / __ \/ __ \/ / / / _ \/ __ \/ ___/ / __/ / / /
+ / ____/ /_/ / /_/ / /_/ / / /_/ / /_/ / /_/ / / / / /_/ /  __/ / / (__  ) / /_/ /_/ / 
+/_/    \____/ .___/\__,_/_/\__,_/\__/_/\____/_/ /_/_____/\___/_/ /_/____/_/\__/\__, /  
+           /_/                                                                /____/   
+
+Last Updated: August 3, 2013
+
+This file is to go over some of the config options and in-game functions of PopulationDensity!
+It occurred to me that despite the verbosity of the config options, they may not be entirely
+straight-forward or understandable, so this is an attempt to help with that issue! This file
+will only generate on installation (when it creates the 'PopulationDensityData' folder)
+
+ABOUT THE PLUGIN!
+	PopulationDensity was originally written by bigscary.
+	It does NOT spawn players 'randomly' on the map!
+	This plugin aims to prevent common problems on high-traffic servers such as:
+		> No resources around spawn
+		> Spawning too far from your home
+		> Crowding around your spawn point
+		> Entity counts being too high (mob grinders, etc)
+		
+HOW IT DOES THIS!
+	PD seeks to deal with such problems by creating 'regions', which are regularly scanned
+	in configurable intervals and on server reload/restart for resources and 'crowdedness'.
+	When PD is installed, an initial scan will determine which region will be 'opened', meaning
+	that new-to-server players will spawn there. Note that this can take a long time! Especially
+	for maps which have been played on for a while, since PD may then need to scan additional
+	regions to find a suitable one!
+	
+	Players with permission may also move in to other regions closer to thier houses and teleport
+	to thier home region, and even random regions. The helps thin out crowds quite effectively.
+	
+	For entity counts, regions can be scanned in configurable intervals and remove excess entities.
+	Entity limits per chunk (not region!) can be specified in the config as well.
+	
+REGION NAMES (regionNames.txt)!
+	The regionNames.txt file is a list of names that PopulationDensity will choose from when
+	naming a new region. The names on this list should be less than 10 letters long. If a name
+	is selected that is longer, PD will truncate excess letters and only use the first 10. If the
+	names list is empty, PD will also use a default list built in (which is the same one that is
+	generated in the file on first-run). There currently is no limit to the number of names on the
+	list, but know that an insanely long list (like thousands of name), may affect the plugin's
+	performance since this list is stored in memory! Each name should be on a new line and should not
+	contain spaces (they will be removed if any are found).
+	
+	The name selection process is semi-random in such a way that allows the names in the list to
+	stay in whatever order suits you, but PD will choose from the list randomly. But it's not entirely 
+	random since PD has to select names in a certain order to detect if all names have been used (in which
+	case, new region names will have a number appended to it). For the curious (not important), PD chooses
+	randomly by generating a list of numbers equal to the length of the name list, each number referencing
+	a name in the list. This list of numbers is then scrambled, then this scrambled list is used to pick
+	names. The numbers are scrambled on each server start and reload.
+	
+CONFIGURATION OPTIONS (config.yml)!
+	The config.yml is stored in /plugins/PopulationDensityData and can be edited in any text
+	editor. The config is broken into sections for readability. Below in a description of each option:
+	
+		> Worlds Section
+			> ManagedWorld
+				> The name of the world that you want PopulationDensity to take effect in. There
+				  can currently only be one world specified. By default this is 'world'. Note that
+				  this must be set to a valid world name or the plugin will disable itself.
+			> CityWorld
+				> The 'City World' is the world that new players will spawn into rather than the
+				  opened region. This can be used for Tutorials or centralized spawn. Afterwards,
+				  players will respawn in home region if the config option 'RespawnInHomeRegion' is true.
+				  By default, this is blank ('')
+		> Spawning Section
+			> NewPlayerSpawnInHomeRegion
+				> Bypasses the CityWorld option and spawns new players in the open region.
+			> RespawnInHomeRegion
+				> Spawns players in thier home region when they respawn, rather than the city world spawn
+		> Teleporting Section
+			> AllowTeleportation
+				> If false, disables all teleporting that PopulationDensity provides, such as /homeregion,
+				  /randomregion, /newestregion, etc, unless the player has permission to bypass this option.
+				  Default Value: true
+			> TeleportFromAnywhere
+				> Allows players to teleport from other areas that are not close to region posts. This can
+				  be achieved per-player with the 'populationdensity.teleportanywhere' permission.
+				  Default Value: false
+			> PostTeleportRadius
+				> If TeleportFromAnywhere is disabled, this option specifies how close a player must be
+				  to a region post in order to use PD's teleport commands.
+				  Default Value: 25
+			> TeleportViaPostSigns
+				> If enabled, allows players to right-click on direction signs generated on region posts
+				  to teleport to the appropriate region indicated on the sign.
+				  Default Value: false
+			> TeleportViaOtherSigns
+				> If enabled, allows players to right-click on standalone teleport signs create by users
+				  with permission to create them. A standalone teleport sign is formatted as such:
+				  SIGN:   ------------------
+				  Line 1: |    [Region]    |  \  These top two lines are NOT case-sensitive, but the
+				  Line 2: |   RegionName   |  /  top lines DOES require brackets!
+				  Line 3: |                |  \  The bottom two lines are blank. Any text here will
+				  Line 4: |                |  /  be removed!
+				          ------------------
+		> Scanning Section
+			> HoursBetweenResourceScans
+				> The number of hours between region score scans. This scan will re-calculate the region's
+				  score based on the number of near-surface resources and crowded-ness to determine if the
+				  region is still suitable for new players to spawn.
+			> DensityRatio
+				> This number adjusts how many player blocks must be present in a region during a region scan
+				  before the region is no longer considered suitable.
+			> LimitEntities
+				> If enabled, PD will remove excessive entities (Monsters, Animals, Villagers, and Item Drops)
+				  during entity scans. Refer to the ChunkLimits section for the configurable entity limits.
+				  Unlike the resource scans, entity scans are not confined to a region, but will include
+				  all chunks currently loaded on the server.
+			> HoursBetweenEntityScans
+				> The number of hours between scanning all loaded chunks for excessive entities.
+		> ChunkLimits (Note that these limits are PER CHUNK, and not per region! Chunk = 16x16 blocks)
+			> MaximumAnimalsPerChunk
+				> The maximum number of animals (such as cows, pigs, sheep, etc) that can be present in a
+				  chunk before PD begins to remove excessive animals. Note that these limits do NOT
+				  discriminate between a player's farm animals and wild animals. Setting this number too
+				  low could adversely affect player farms!
+			> MaximumMonstersPerChunk
+				> The maximum number of monsters (such as creepers, spiders, etc) that can be present in a
+				  chunk before PD begins to remove excessive monsters.
+			> MaximumVillagersPerChunk
+				> The maximum number of villagers that can be present in a chunk before PD begins to remove
+				  excessive villagers.
+			> MaximumDropsPerChunk
+				> The maximum number of item drops that can be present in a chunk before PD begins to remove
+				  excessive item drops.
+		> Queueing Section
+			> MaxIdleMinutes
+				> The number of minutes that a player can idle before being kicked from the game
+			> LoginQueueEnabled
+				> Enable queueing. This will help manage how a players connections when the server is full.
+			> MinimumPlayersOnlineForIdleBoot
+				> The number of players that must be online before PD will begin kicking players for idling
+			> ReservedSlotsForAdministrators
+				> How many slots to reserver for admins. When there are only this many slots left, non-admin
+				  ranked players will not be allowed to join, ensuring that admins can connect during rush-hour
+			> LoginQueueMessage
+				> The message that is shown to users attempting to connect when they are disconnected. This will
+				  only display if LoginQueueEnabled is true.
+		> Misc Section
+			> GrassRegrows
+				> If true, when an animal spawns, PD will change dirt blocks to grass around the animal.
+			> AnimalsRespawn
+				> If true, PD will spawn additional animals when a monster spawns. There is a rare chance that
+				  PD will spawn a group of animals rather than a single animal.
+			> TreesRegrow
+				> If true, PD will plant a sapling in the location that a sapling drop despawns.
+			> PrintResourceScanResults
+				> If true, PD will log to console the results of resource scans. The results are shown on a
+				  per-region basis. A resource scan will NOT scan the entire map.
+			> PrintEntityScanResults
+				> If true, PD will log to console the results of entity scans. The numbers reflected in the
+				  entity scan results is the total number of entites that were found and removed, not just the
+				  number per chunk. Results are printed in the following format:
+				  	  > MobType ... TotalFound / TotalAllowed (How many were removed)
+		> Regions Section
+			> BuildRegionPosts
+				> If true, PD will generate a post structure in the center of each region, including wilderness
+				  regions. Posts are generated 10 seconds after a chunk containing a post is loaded.
+			> MinimumRegionPostY
+				> This is the minimum height that a region post will generate. This ensures that a post will not
+				  generate at the bottom of a ravine or ocean. This number may need to be tweaked if using custom
+				  map generators or the vanilla flat terrain.
+			> PostProtectionRadius
+				> The radius in which players will not be allowed to build around the region posts. Note that this
+				  is not a circular radius for the sake of speed. Only players with the 'populationdensity.buildbreakanywhere'
+				  permission will be allowed to build or break the region posts, but the central post (not including the radius)
+				  will regenerate with each chunk load, or with the /addregionpost command.
+			> CustomSigns
+				> These options allow you to specify the text to display on the signs of the region post. If these are left blank,
+				  custom signs will not generate. Note that the Main sign is the sign on the top of the post, whereas the
+				  directional signs will be placed on the bottom.
+		> WorldGuardOptions
+			> ClaimRegionPosts
+				> If this is enabled AND WorldGuard is available on the server, PD will automatically claim the
+				  area around the region post IF there are no claims already there. This claim will encompass the
+				  region post and the PostProtectionRadius.
+			> PreventPostsOnClaims
+				> If this is enabled AND WorldGuard is available on the server, PD will prevent the generation
+				  of a region's posts if the post and PostProtectionRadius intersects an existing WorldGuard claim.
+		> GriefPreventionOptions
+			> ClaimRegionPosts
+				> If this is enabled AND GriefPrevention is available on the server, PD will automatically claim the
+				  area around the region post IF there are no claims already there. This claim will encompass the
+				  region post and the PostProtectionRadius.
+			> PreventPostsOnClaims
+				> If this is enabled AND GriefPrevention is available on the server, PD will prevent the generation
+				  of a region's posts if the post and PostProtectionRadius intersects an existing GriefPrevention claim.
+				  
+COMMANDS!
+	Most commands have accompanying permission nodes are menioned in the next section below in more detail.
+	Note that when you see something in brackets, such as [regionName], this is an example, and you do not
+	need the brackets when you use the command.
+	
+	Commands list! /command (/alias)
+	
+	> /PopulationDensity (/pd)
+		> The base PD command. This is the help command.
+	> /visitregion [regionName]
+		> Visit the specified region
+	> /homeregion
+		> Teleport to your home region
+	> /movein
+		> Move into a new region. This may also be a wilderness region
+	> /nameregion [newName]
+		> Names or renames the region you are currently in
+	> /whichregion
+		> Simply tells you which region you're in
+	> /newestregion
+		> Teleports you to the current opened region
+	> /spawnregion (/cityregion)
+		> Teleports you to the CityWorld if specified in the config
+	> /addregion
+		> Scans and opens a new region. This also closes the previously open region
+	> /scanregion
+		> Scans your current region for resources
+	> /addregionpost
+		> Generates or regenerates the region post in your current region
+	> /randomregion
+		> Teleports you to a random region
+	> /invitetoregion [player]
+		> Invites the specified player to the sender's home region
+	> /acceptregioninvite
+		> Accepts a pending invite to teleport to the sender's home region
+	> /listregion
+		> Displays a list of currently named regions
+	> /loginpriority [player] [priority 0-100]
+		> Sets the specified player's login priority.
+				
+PERMISSIONS!
+	Since PopulationDensity v3.9, permissions are now handled by Vault, which can hook into most
+	permission management plugins and allows PD far better permission handling. If you don't have
+	Vault already, get it from http://dev.bukkit.org/bukkit-plugins/vault/ -- This is required!
+	
+	Here is a list of permission nodes!
+	
+	> populationdensity.*
+		> This allows all nodes that are not granted by default
+		> false by default
+	> populationdensity.noteleport
+		> This is a short-hand node that negates all teleport nodes
+		> false by default
+	> populationdensity.help
+		> This allows players to use PD's base help command (/pd)
+		> true by default
+	> populationdensity.buildbreakanywhere
+		> Allows a user to build and break within a region's protection radius
+		> Op by default
+	> populationdensity.addpost
+		> Allows a user to add or regenerate a region post via /addregionpost command
+		> Op by default
+	> populationdensity.movein
+		> Allows a user to use the /movein command to move into a new region (respawn into it as well)
+		> true by default
+	> populationdensity.teleportanywhere
+		> Allows a user to bypass the region post proximity requirement to teleport
+		> Op by default
+	> populationdensity.cityteleport
+		> Allows a user to teleport to the city world via the /cityregion command
+		> true by default
+	> populationdensity.hometeleport
+		> Allows a user to teleport to thier respective home region posts via the /homeregion command
+		> true by default
+	> populationdensity.whichregion
+		> Allows a user to view thier region's name via the /whichregion command
+		> true by default
+	> populationdensity.newestregion
+		> Allows a user to teleport to the newest opened region via the /newestregion command
+		> Op by default
+	> populationdensity.randomteleport
+		> Allows a user to teleport to a random named region via the /randomregion command
+		> Op by default
+	> populationdensity.visitregion
+		> Allows a user to teleport to a specific region via the /visitregion [region] command
+		> true by default
+	> populationdensity.invitetoregion
+		> Allows a user to invite another user to thier home region via the /invitetoregion [user] command
+		> true by default
+	> populationdensity.acceptinvite
+		> Allows a user to accept a region invite sent by another user
+		> true by default
+	> populationdensity.createteleportsign
+		> Allows a user to create a standalone teleport sign
+		> Op by default
+	> populationdensity.useteleportsign
+		> Allows a user to use a standalone or region post teleport sign
+		> Op by default
+	> populationdensity.addregion
+		> Allows a user to initialize a new region via the /addregion command
+		> Op by default
+	> populationdensity.listregions
+		> Allows a user to view a list of named regions via the /listregions command
+		> Op by default
+	> populationdensity.idle
+		> Allows a user to bypass PD's kick on idle feature
+		> Op by default
+	> populationdensity.adminlogin
+		> Allows a user to fill a slot reserved for admins
+		> Op by default
+	> populationdensity.prioritylogin
+		> Grants a user a login priority of 25 out of 100
+		> false by default
+	> populationdensity.elitelogin
+		> Grants a user a login priority of 50 out of 100
+		> false by default
+	> populationdensity.setloginpriority
+		> Allows a user to set a players login priority via the /setloginpriority command
+		> Op by default
+	
+THINGS TO KNOW!
+	What is a region, exactly?
+		> A region is a 400x400 meter (block) area which has a 'score' which determines how
+		  suitable a region is for new players. The more player blocks or the fewer 'near-surface'
+		  resources a region has will lower it's score. Any non-wilderness regions will be named
+		  and can be renamed later with the /nameregion command. A region can be re-scanned at
+		  any time as well with the /scanregion command. If a region score drops too low, a new
+		  region will start to be scanned in search of a new resourceful area.
+	Why can't I change that a region is 400x400 meters?
+		> Simply put, making variable region sizes would introduce several new problems. Namely, old
+		  region data files would need to be discarded. If region posts were enabled, changing region
+		  sizes would cause potentially several dead region posts. Such a simple thing could entirely
+		  destroy all the region data previously stored on the server.
+	Are players required to build in regions?
+		> In a way, yes. Regions will cover the entirety of the map, but players do NOT need to build
+		  in scanned or named regions. Un-named regions are called Wilderness regions. Players are also
+		  free to build in these regions, which will already have a name-less region post if posts are
+		  enabled, since region posts generate as new chunks are loaded.
+	Why do the region scan results hardly ever contain rare ores?
+		> PD will only attempt to scan for 'near-surface' resources. Mostly trees and common ores. Other
+		  ores have more weight on the region score, but unless they are 'easily accessible', PD will
+		  not count it towards the region's resource score. Those ores must still counted because
+		  other map generators may change where ores are generated, affecting the resource scores.
