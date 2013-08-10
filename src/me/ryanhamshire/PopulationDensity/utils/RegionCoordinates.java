@@ -45,7 +45,7 @@ public class RegionCoordinates {
 	//TRIVIA!  despite the simplicity of this method, I got it badly wrong like 5 times before it was finally fixed
 	public static RegionCoordinates fromLocation(Location location) {
 		//not managed world?  return null
-		if(!PopulationDensity.managedWorld.equals(location.getWorld()))
+		if(!ConfigData.managedWorld.equals(location.getWorld()))
 			return null;		
 		
 		//keeping all regions the same size and arranging them in a strict grid makes this calculation supa-fast!

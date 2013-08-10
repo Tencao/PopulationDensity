@@ -20,6 +20,7 @@ package me.ryanhamshire.PopulationDensity.events;
 
 import me.ryanhamshire.PopulationDensity.PopulationDensity;
 import me.ryanhamshire.PopulationDensity.tasks.AddRegionPostTask;
+import me.ryanhamshire.PopulationDensity.utils.ConfigData;
 import me.ryanhamshire.PopulationDensity.utils.RegionCoordinates;
 
 import org.bukkit.Chunk;
@@ -35,7 +36,7 @@ public class WorldEventHandler implements Listener {
 		Chunk chunk = chunkLoadEvent.getChunk();
 		
 		//nothing to do in worlds other than the managed world
-		if(chunk.getWorld() != PopulationDensity.managedWorld)
+		if(chunk.getWorld() != ConfigData.managedWorld)
 			return;
 		
 		//find the boundaries of the chunk

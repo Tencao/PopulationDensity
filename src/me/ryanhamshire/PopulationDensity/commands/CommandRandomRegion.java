@@ -1,6 +1,7 @@
 package me.ryanhamshire.PopulationDensity.commands;
 
 import me.ryanhamshire.PopulationDensity.PopulationDensity;
+import me.ryanhamshire.PopulationDensity.utils.ConfigData;
 import me.ryanhamshire.PopulationDensity.utils.Messages;
 import me.ryanhamshire.PopulationDensity.utils.Messages.Colors;
 import me.ryanhamshire.PopulationDensity.utils.Messages.Message;
@@ -32,7 +33,7 @@ public class CommandRandomRegion extends PDCmd {
 		Player player = null;
 		if (sender instanceof Player) {
 			player = (Player) sender;
-			if(PopulationDensity.managedWorld == null) {
+			if(ConfigData.managedWorld == null) {
 				Messages.send(player, Message.NO_WORLD);
 				return true;
 			}

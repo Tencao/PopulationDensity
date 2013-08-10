@@ -27,7 +27,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -37,6 +36,7 @@ import java.util.Locale;
 import java.util.Random;
 
 import me.ryanhamshire.GriefPrevention.Claim;
+import me.ryanhamshire.GriefPrevention.CreateClaimResult;
 import me.ryanhamshire.PopulationDensity.utils.ConfigData;
 import me.ryanhamshire.PopulationDensity.utils.Log.Level;
 import me.ryanhamshire.PopulationDensity.utils.NameData;
@@ -50,8 +50,11 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
+import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 
 public class DataStore {
 	
@@ -540,7 +543,7 @@ public class DataStore {
 		if (ConfigData.getGPData() != null && ConfigData.claimPosts) {
 			for (int ix = minX; claimable && ix < maxX; ix++) {
 				for (int iz = minZ; claimable && iz < maxZ; iz++) {
-					Location loc = new Location(PopulationDensity.managedWorld, ix, 64, iz);
+					Location loc = new Location(ConfigData.managedWorld, ix, 64, iz);
 					Claim claim = ConfigData.getGPData().getClaimAt(loc, true, null);
 					if (claim != null)
 						claimable = false;
@@ -551,11 +554,11 @@ public class DataStore {
 		}
 		
 		if (!claimable && ConfigData.getWGData() != null && ConfigData.guardPosts) {
-			RegionManager rm = ConfigData.getWGData().getRegionManager(PopulationDensity.managedWorld);
+			RegionManager rm = ConfigData.getWGData().getRegionManager(ConfigData.managedWorld);
 			for (int ix = minX; guardable && ix < maxX; ix++) {
 				for (int iy = 0; guardable && iy < 255; iy++) {
 					for (int iz = minZ; guardable && iz < maxZ; iz++) {
-						Location loc = new Location(PopulationDensity.managedWorld, ix, iy, iz);
+						Location loc = new Location(ConfigData.managedWorld, ix, iy, iz);
 						ApplicableRegionSet regions = rm.getApplicableRegions(loc);
 						if (regions.size() > 0) {
 							guardable = false;
@@ -579,12 +582,12 @@ public class DataStore {
 			tryAgain = false;
 			
 			//find the highest block.  could be the surface, a tree, some grass...
-			y = PopulationDensity.managedWorld.getHighestBlockYAt(x, z) + 1;
+			y = ConfigData.managedWorld.getHighestBlockYAt(x, z) + 1;
 			
 			//posts fall through trees, snow, and any existing post looking for the ground
 			Material blockType;
 			do {
-				blockType = PopulationDensity.managedWorld.getBlockAt(x, --y, z).getType();
+				blockType = ConfigData.managedWorld.getBlockAt(x, --y, z).getType();
 			} while(y > 2 && canFall(blockType));
 			
 			//if final y value is extremely small, it's probably wrong
@@ -605,7 +608,7 @@ public class DataStore {
 		for(int x1 = x - 2; x1 <= x + 2; x1++) {
 			for(int z1 = z - 2; z1 <= z + 2; z1++) {
 				for(int y1 = y + 1; y1 <= y + 15; y1++) {
-					Block block = PopulationDensity.managedWorld.getBlockAt(x1, y1, z1);
+					Block block = ConfigData.managedWorld.getBlockAt(x1, y1, z1);
 					if(block.getType() == Material.SIGN_POST || block.getType() == Material.SIGN || block.getType() == Material.WALL_SIGN)
 						block.setType(Material.AIR);					
 				}
@@ -615,24 +618,24 @@ public class DataStore {
 		//clear above it - sometimes this shears trees in half (doh!)
 		for(int x1 = x - 2; x1 <= x + 2; x1++)
 			for(int z1 = z - 2; z1 <= z + 2; z1++)
-				for(int y1 = y + 1; y1 < PopulationDensity.managedWorld.getMaxHeight(); y1++)
-					PopulationDensity.managedWorld.getBlockAt(x1, y1, z1).setType(Material.AIR);
+				for(int y1 = y + 1; y1 < ConfigData.managedWorld.getMaxHeight(); y1++)
+					ConfigData.managedWorld.getBlockAt(x1, y1, z1).setType(Material.AIR);
 		
 		
 		//build a glowpost in the center
 		for(int y1 = y; y1 <= y + 3; y1++)
-			PopulationDensity.managedWorld.getBlockAt(x, y1, z).setType(Material.GLOWSTONE);
+			ConfigData.managedWorld.getBlockAt(x, y1, z).setType(Material.GLOWSTONE);
 		
 		//build a stone platform
 		for(int x1 = x - 2; x1 <= x + 2; x1++)
 			for(int z1 = z - 2; z1 <= z + 2; z1++)
-				PopulationDensity.managedWorld.getBlockAt(x1, y, z1).setType(Material.SMOOTH_BRICK);
+				ConfigData.managedWorld.getBlockAt(x1, y, z1).setType(Material.SMOOTH_BRICK);
 		
 		//if the region has a name, build a sign on top
 		String regionName = this.getRegionName(region);
 		if(regionName != null) {		
 			regionName = PopulationDensity.capitalize(regionName);
-			Block block = PopulationDensity.managedWorld.getBlockAt(x, y + 4, z);
+			Block block = ConfigData.managedWorld.getBlockAt(x, y + 4, z);
 			block.setType(Material.SIGN_POST);
 			
 			org.bukkit.block.Sign sign = (org.bukkit.block.Sign)block.getState();
@@ -646,7 +649,7 @@ public class DataStore {
 		if(regionName == null) regionName = "\u00A74Wilderness";
 		regionName = "\u00A71" + PopulationDensity.capitalize(regionName);
 		
-		Block block = PopulationDensity.managedWorld.getBlockAt(x, y + 2, z - 1);
+		Block block = ConfigData.managedWorld.getBlockAt(x, y + 2, z - 1);
 		
 		org.bukkit.material.Sign signData = new org.bukkit.material.Sign(Material.WALL_SIGN);
 		signData.setFacingDirection(BlockFace.NORTH);
@@ -663,7 +666,7 @@ public class DataStore {
 		
 		//if a city world is defined, also add a /cityregion sign on the east side of the post
 		if(PopulationDensity.CityWorld != null) {
-			block = PopulationDensity.managedWorld.getBlockAt(x, y + 3, z - 1);
+			block = ConfigData.managedWorld.getBlockAt(x, y + 3, z - 1);
 			
 			signData = new org.bukkit.material.Sign(Material.WALL_SIGN);
 			signData.setFacingDirection(BlockFace.NORTH);
@@ -685,7 +688,7 @@ public class DataStore {
 		if(regionName == null) regionName = "\u00A74Wilderness";
 		regionName = "\u00A71" + PopulationDensity.capitalize(regionName);
 		
-		block = PopulationDensity.managedWorld.getBlockAt(x - 1, y + 2, z);
+		block = ConfigData.managedWorld.getBlockAt(x - 1, y + 2, z);
 		
 		signData = new org.bukkit.material.Sign(Material.WALL_SIGN);
 		signData.setFacingDirection(BlockFace.WEST);
@@ -702,7 +705,7 @@ public class DataStore {
 		
 		//if teleportation is enabled, also add a sign facing north for /visitregion and /invitetoregion
 		if(ConfigData.allowTeleportation) {
-			block = PopulationDensity.managedWorld.getBlockAt(x - 1, y + 3, z);
+			block = ConfigData.managedWorld.getBlockAt(x - 1, y + 3, z);
 			
 			signData = new org.bukkit.material.Sign(Material.WALL_SIGN);
 			signData.setFacingDirection(BlockFace.WEST);
@@ -724,7 +727,7 @@ public class DataStore {
 		if(regionName == null) regionName = "\u00A74Wilderness";
 		regionName = "\u00A71" + PopulationDensity.capitalize(regionName);
 		
-		block = PopulationDensity.managedWorld.getBlockAt(x + 1, y + 2, z);
+		block = ConfigData.managedWorld.getBlockAt(x + 1, y + 2, z);
 		
 		signData = new org.bukkit.material.Sign(Material.WALL_SIGN);
 		signData.setFacingDirection(BlockFace.EAST);
@@ -741,7 +744,7 @@ public class DataStore {
 		
 		//if teleportation is enabled, also add a sign facing south for /homeregion
 		if(ConfigData.allowTeleportation) {
-			block = PopulationDensity.managedWorld.getBlockAt(x + 1, y + 3, z);
+			block = ConfigData.managedWorld.getBlockAt(x + 1, y + 3, z);
 			signData = new org.bukkit.material.Sign(Material.WALL_SIGN);
 			signData.setFacingDirection(BlockFace.EAST);
 			
@@ -762,7 +765,7 @@ public class DataStore {
 		if(regionName == null) regionName = "\u00A74Wilderness";
 		regionName = "\u00A71" + PopulationDensity.capitalize(regionName);
 		
-		block = PopulationDensity.managedWorld.getBlockAt(x, y + 2, z + 1);
+		block = ConfigData.managedWorld.getBlockAt(x, y + 2, z + 1);
 		
 		signData = new org.bukkit.material.Sign(Material.WALL_SIGN);
 		signData.setFacingDirection(BlockFace.SOUTH);
@@ -779,7 +782,7 @@ public class DataStore {
 		
 		//if teleportation is enabled, also add a sign facing west for /newestregion and /randomregion
 		if(ConfigData.allowTeleportation) {
-			block = PopulationDensity.managedWorld.getBlockAt(x, y + 3, z + 1);
+			block = ConfigData.managedWorld.getBlockAt(x, y + 3, z + 1);
 
 			signData = new org.bukkit.material.Sign(Material.WALL_SIGN);
 			signData.setFacingDirection(BlockFace.SOUTH);
@@ -798,7 +801,7 @@ public class DataStore {
 		//custom signs
 		
 		if(ConfigData.mainCustomSignContent != null) {
-			block = PopulationDensity.managedWorld.getBlockAt(x, y + 3, z - 1);
+			block = ConfigData.managedWorld.getBlockAt(x, y + 3, z - 1);
 
 			signData = new org.bukkit.material.Sign(Material.WALL_SIGN);
 			signData.setFacingDirection(BlockFace.NORTH);
@@ -813,7 +816,7 @@ public class DataStore {
 			sign.update();
 		}
 		
-		// 62 lines widdled down to 36 lines!
+		// 62 lines whiddled down to 36 lines!
 		HashMap<BlockFace, String[]> content = new HashMap<BlockFace, String[]>();
 		content.put(BlockFace.WEST, ConfigData.northCustomSignContent);
 		content.put(BlockFace.EAST, ConfigData.southCustomSignContent);
@@ -824,16 +827,16 @@ public class DataStore {
 			if (content.get(face) != null) {
 				switch (face) {
 					case WEST:
-						block = PopulationDensity.managedWorld.getBlockAt(x - 1, y + 1, z);
+						block = ConfigData.managedWorld.getBlockAt(x - 1, y + 1, z);
 						break;
 					case EAST:
-						block = PopulationDensity.managedWorld.getBlockAt(x + 1, y + 1, z);
+						block = ConfigData.managedWorld.getBlockAt(x + 1, y + 1, z);
 						break;
 					case NORTH:
-						block = PopulationDensity.managedWorld.getBlockAt(x, y + 1, z - 1);
+						block = ConfigData.managedWorld.getBlockAt(x, y + 1, z - 1);
 						break;
 					case SOUTH:
-						block = PopulationDensity.managedWorld.getBlockAt(x, y + 1, z + 1);
+						block = ConfigData.managedWorld.getBlockAt(x, y + 1, z + 1);
 						break;
 					default:
 						break;
@@ -855,18 +858,15 @@ public class DataStore {
 		// TODO Auto claim support for GriefPrevention and WorldGuard
 		if (claimable) {
 			me.ryanhamshire.GriefPrevention.DataStore gp = ConfigData.getGPData();
-			Long id = 0L;
-			Long i = 0L;
-			boolean loop = true;
-			List<Long> idList = Arrays.asList(gp.getClaimIds());
-			while (loop && i <= idList.size()) {
-				if (!idList.contains(id)) {
-					id = i;
-					loop = false;;
-				} else
-					i++;
-			}
-			gp.createClaim(ConfigData.managedWorld, minX, maxX, 0, 255, minZ, maxZ, "", null, id, true);
+			CreateClaimResult ccr = gp.createClaim(ConfigData.managedWorld, minX, maxX, 0, 255, minZ, maxX, "", null, null, false, null, false);
+			if (!ccr.succeeded.equals(CreateClaimResult.Result.Success))
+				PopulationDensity.instance.log.log("Failed to claim the region post.");
+		} else if (guardable) {
+			WorldGuardPlugin wg = ConfigData.getWGData();
+			RegionManager rm = wg.getRegionManager(ConfigData.managedWorld);
+			BlockVector bv1 = new BlockVector(minX,0,minZ),
+					bv2 = new BlockVector(maxX,255,maxZ);
+			rm.addRegion(new ProtectedCuboidRegion("PD_Post_" + PopulationDensity.capitalize(regionName), bv1, bv2));
 		}
 		
 		if(updateNeighboringRegions) {

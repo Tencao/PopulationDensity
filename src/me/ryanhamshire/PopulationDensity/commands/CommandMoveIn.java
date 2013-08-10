@@ -1,6 +1,7 @@
 package me.ryanhamshire.PopulationDensity.commands;
 
 import me.ryanhamshire.PopulationDensity.PopulationDensity;
+import me.ryanhamshire.PopulationDensity.utils.ConfigData;
 import me.ryanhamshire.PopulationDensity.utils.Messages;
 import me.ryanhamshire.PopulationDensity.utils.Messages.Colors;
 import me.ryanhamshire.PopulationDensity.utils.Messages.Message;
@@ -34,21 +35,21 @@ public class CommandMoveIn extends PDCmd {
 		PlayerData playerData = null;
 		if (sender instanceof Player) {
 			player = (Player) sender;
-			if(PopulationDensity.managedWorld == null) {
+			if(ConfigData.managedWorld == null) {
 				Messages.send(player, Message.NO_WORLD);
 				return true;
 			}
 			playerData = instance.dataStore.getPlayerData(player);
 		}
 		
-		// silently fail if player is null (not online player)
+		// fail if player is null (not online player)
 		if (player == null) {
 			Messages.send(player, Message.NOT_ONLINE);
 			return true;
 		}
 		
 		//if not in the managed world, /movein doesn't make sense
-		if(!player.getWorld().equals(PopulationDensity.managedWorld)) {
+		if(!player.getWorld().equals(ConfigData.managedWorld)) {
 			player.sendMessage(Colors.ERR + "Sorry, no one can move in here.");
 			return true;
 		}

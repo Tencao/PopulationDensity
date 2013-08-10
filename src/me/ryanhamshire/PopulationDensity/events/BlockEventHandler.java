@@ -100,7 +100,7 @@ public class BlockEventHandler implements Listener  {
 	//moved copy and paste blocks from events to single method
 	private boolean eventHandle(Block block, Player player) {
 		//if not in managed world, do nothing
-		if(PopulationDensity.managedWorld == null || !player.getWorld().equals(PopulationDensity.managedWorld))
+		if(ConfigData.managedWorld == null || !player.getWorld().equals(ConfigData.managedWorld))
 			return true;
 		
 		Location blockLocation = block.getLocation();
@@ -151,7 +151,7 @@ public class BlockEventHandler implements Listener  {
 			location.getBlockX() < postLocation.getBlockX() + r &&
 			location.getBlockZ() > postLocation.getBlockZ() - r &&
 			location.getBlockZ() < postLocation.getBlockZ() + r &&
-			location.getBlockY() > PopulationDensity.managedWorld.getHighestBlockYAt(postLocation) - 5
+			location.getBlockY() > ConfigData.managedWorld.getHighestBlockYAt(postLocation) - 5
 		);
 	}
 }

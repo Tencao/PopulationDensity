@@ -64,7 +64,7 @@ public class EntityEventHandler implements Listener {
 		
 		//otherwise if it's close to a region post
 		Location regionCenter = PopulationDensity.getRegionCenter(region);
-		regionCenter.setY(PopulationDensity.managedWorld.getHighestBlockYAt(regionCenter));		
+		regionCenter.setY(ConfigData.managedWorld.getHighestBlockYAt(regionCenter));		
 		if(regionCenter.distanceSquared(location) < 225)  //225 = 15 * 15
 			explodeEvent.blockList().clear(); //All the noise and terror, none of the destruction (whew!).
 		
@@ -154,7 +154,7 @@ public class EntityEventHandler implements Listener {
 		if(event.getSpawnReason() != SpawnReason.NATURAL)
 			return;
 		
-		if(PopulationDensity.managedWorld == null || event.getLocation().getWorld() != PopulationDensity.managedWorld)
+		if(ConfigData.managedWorld == null || event.getLocation().getWorld() != ConfigData.managedWorld)
 			return;
 		
 		//when an animal naturally spawns, grow grass around it

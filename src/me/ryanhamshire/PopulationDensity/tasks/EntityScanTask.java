@@ -22,11 +22,11 @@ public class EntityScanTask implements Runnable {
 		
 		//scan loaded chunks for chunks with too many monsters or items, and remove the superfluous
 		if(ConfigData.limitEntities) {
-			if (PopulationDensity.managedWorld == null) {
+			if (ConfigData.managedWorld == null) {
 				PopulationDensity.instance.log.log("Managed world is null", Level.SEVERE);
 				return;
 			}
-			Chunk[] chunks = PopulationDensity.managedWorld.getLoadedChunks();
+			Chunk[] chunks = ConfigData.managedWorld.getLoadedChunks();
 			
 			if (chunks.length > 0)
 				PopulationDensity.instance.log.log("Scanning for excess entities...");

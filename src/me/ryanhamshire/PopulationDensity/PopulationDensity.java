@@ -81,9 +81,6 @@ public class PopulationDensity extends JavaPlugin {
 	// developer configuration, not modifiable by users
 	public static final int REGION_SIZE = 400;
 	
-	// the world managed by this plugin
-	public static World managedWorld;
-	
 	// the default world, not managed by this plugin
 	// (may be null in some configurations)
 	public static World CityWorld;
@@ -119,8 +116,6 @@ public class PopulationDensity extends JavaPlugin {
 			getServer().getPluginManager().disablePlugin(this);
 			return;
 		}
-		
-		managedWorld = ConfigData.managedWorld;
 		
 		new NameData(new File(DataStore.namesFilePath)); // Names list, loaded externally
 		
@@ -241,7 +236,7 @@ public class PopulationDensity extends JavaPlugin {
 			return true;
 		
 		//avoid teleporting from other worlds
-		if(!player.getWorld().equals(managedWorld)) {
+		if(!player.getWorld().equals(ConfigData.managedWorld)) {
 			player.sendMessage(Colors.ERR + "You can't teleport from here!");
 			return false;
 		}
@@ -309,8 +304,8 @@ public class PopulationDensity extends JavaPlugin {
 		teleportDestination.getWorld().refreshChunk((int)x, (int)z);
 		
 		//find a safe height, a couple of blocks above the surface		
-		Block highestBlock = managedWorld.getHighestBlockAt((int)x, (int)z);
-		teleportDestination = new Location(managedWorld, x, highestBlock.getY(), z, -180, 0);		
+		Block highestBlock = ConfigData.managedWorld.getHighestBlockAt((int)x, (int)z);
+		teleportDestination = new Location(ConfigData.managedWorld, x, highestBlock.getY(), z, -180, 0);		
 		
 		String regName = Colors.HEAD + "the wilderness";
 		if (dataStore.getRegionName(region) != null)
@@ -335,8 +330,8 @@ public class PopulationDensity extends JavaPlugin {
 		int min_z = regionCenter.getBlockZ() - REGION_SIZE / 2;
 		int max_z = regionCenter.getBlockZ() + REGION_SIZE / 2;
 		
-		Chunk lesserBoundaryChunk = managedWorld.getChunkAt(new Location(managedWorld, min_x, 1, min_z));
-		Chunk greaterBoundaryChunk = managedWorld.getChunkAt(new Location(managedWorld, max_x, 1, max_z));
+		Chunk lesserBoundaryChunk = ConfigData.managedWorld.getChunkAt(new Location(ConfigData.managedWorld, min_x, 1, min_z));
+		Chunk greaterBoundaryChunk = ConfigData.managedWorld.getChunkAt(new Location(ConfigData.managedWorld, max_x, 1, max_z));
 				
 		ChunkSnapshot [][] snapshots = new ChunkSnapshot[greaterBoundaryChunk.getX() - lesserBoundaryChunk.getX() + 1][greaterBoundaryChunk.getZ() - lesserBoundaryChunk.getZ() + 1];
 		boolean snapshotIncomplete;
@@ -346,7 +341,7 @@ public class PopulationDensity extends JavaPlugin {
 			for(int x = 0; x < snapshots.length; x++) {
 				for(int z = 0; z < snapshots[0].length; z++) {
 					//get the chunk, load it, generate it if necessary
-					Chunk chunk = managedWorld.getChunkAt(x + lesserBoundaryChunk.getX(), z + lesserBoundaryChunk.getZ());
+					Chunk chunk = ConfigData.managedWorld.getChunkAt(x + lesserBoundaryChunk.getX(), z + lesserBoundaryChunk.getZ());
 					while(!chunk.load(true));
 					
 					//take a snapshot
@@ -354,7 +349,7 @@ public class PopulationDensity extends JavaPlugin {
 					
 					//verify the snapshot by finding something that's not air
 					boolean foundNonAir = false;
-					for(int y = 0; y < managedWorld.getMaxHeight(); y++) {
+					for(int y = 0; y < ConfigData.managedWorld.getMaxHeight(); y++) {
 						//if we find something, save the snapshot to the snapshot array
 						if(snapshot.getBlockTypeId(0, y, 0) != Material.AIR.getId()) {
 							foundNonAir = true;
@@ -380,7 +375,7 @@ public class PopulationDensity extends JavaPlugin {
 		} while(snapshotIncomplete);
 		
 		//try to unload any chunks which don't have players nearby
-		Chunk [] loadedChunks = managedWorld.getLoadedChunks();
+		Chunk [] loadedChunks = ConfigData.managedWorld.getLoadedChunks();
 		for(int i = 0; i < loadedChunks.length; i++)
 			loadedChunks[i].unload(true, true);  //save = true, safe = true
 		
@@ -398,15 +393,15 @@ public class PopulationDensity extends JavaPlugin {
 	//(generates the chunk if necessary)
 	//these coordinate params are BLOCK coordinates, not CHUNK coordinates
 	public static void GuaranteeChunkLoaded(int x, int z) {
-		Location location = new Location(managedWorld, x, 5, z);
-		Chunk chunk = managedWorld.getChunkAt(location);
+		Location location = new Location(ConfigData.managedWorld, x, 5, z);
+		Chunk chunk = ConfigData.managedWorld.getChunkAt(location);
 		while(!chunk.isLoaded() || !chunk.load(true));
 	}
 	
 	//determines the center of a region (as a Location) given its region coordinates
 	//keeping all regions the same size and aligning them in a grid keeps this calculation simple and fast
 	public static Location getRegionCenter(RegionCoordinates region) {
-		World w = managedWorld;
+		World w = ConfigData.managedWorld;
 		int x, z;
 		if(region.x >= 0)
 			x = region.x * REGION_SIZE + REGION_SIZE / 2;

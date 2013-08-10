@@ -51,7 +51,7 @@ public class ScanRegionTask implements Runnable {
 		int waterCount = 0;
 		int playerBlocks = 0;
 
-		int maxHeight = PopulationDensity.managedWorld.getMaxHeight();
+		int maxHeight = ConfigData.managedWorld.getMaxHeight();
 		int x, y, z;
 		x = y = z = 0;
 		//initialize a new array to track where we've been

@@ -35,7 +35,7 @@ public class CommandHomeRegion extends PDCmd {
 		PlayerData playerData = null;
 		if (sender instanceof Player) {
 			player = (Player) sender;
-			if(PopulationDensity.managedWorld == null) {
+			if(ConfigData.managedWorld == null) {
 				Messages.send(player, Message.NO_WORLD);
 				return true;
 			}
