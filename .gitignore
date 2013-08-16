@@ -28,6 +28,7 @@ Thumbs.db
 .externalToolBuilders
 .project
 .settings
+*.jardesc
 MANIFEST.MF
 
 # Netbeans files #
